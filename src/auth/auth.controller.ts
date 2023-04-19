@@ -1,4 +1,4 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body, Param, ParseIntPipe } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SignInDto } from './dto';
 
@@ -15,5 +15,20 @@ export class AuthController {
   signup() {}
 
   @Post('forget-password')
-  forgetPassword() {}
+  async forgetPassword(@Body() body: { email: string }) {
+    if (await this.authService.forgetPassword(body.email))
+      return { message: 'Reset Password Link Has Been Sent To Your Email' };
+  }
+
+  @Post('reset-password/:reset_token')
+  resetPassword(
+    @Param('reset_token', ParseIntPipe) reset_token: bigint,
+    @Body() body: { password: string; confirmPassword: string },
+  ) {
+    return this.authService.resetPassword(
+      reset_token,
+      body.password,
+      body.confirmPassword,
+    );
+  }
 }
