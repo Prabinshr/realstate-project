@@ -1,13 +1,20 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { SignInDto } from './dto';
 import { JwtService } from '@nestjs/jwt';
 import { Tokens } from 'src/types/token.type';
 import { TOKENS } from 'src/config';
+import { UserService } from 'src/user/user.service';
+// import { argon2d } from 'argon2';
+import * as argon from 'argon2';
 
 @Injectable()
 export class AuthService {
-  constructor(private prisma: PrismaService, private jwtService: JwtService) {}
+  constructor(
+    private prisma: PrismaService,
+    private jwtService: JwtService,
+    private userService: UserService,
+  ) {}
 
   // Generates Access & Refresh Token
   async generateTokens(payload): Promise<Tokens> {
@@ -26,9 +33,27 @@ export class AuthService {
       refresh_token: refreshToken,
     };
   }
+  //prashant
+  async validateUser(email: string, password: string) {
+    const user = await this.userService.findOneByEmail(email);
+    const hashPassword = await argon.verify(user.password, password);
+    if (!user || !hashPassword) return false;
+    return user;
+  }
 
-  signin(signInDto: SignInDto) {}
-
+  async login(signInDto: SignInDto): Promise<any> {
+    const user = await this.validateUser(signInDto.email, signInDto.password);
+    if (!user) {
+      return null;
+    }
+    const payload = { email: user.email, sub: user.id };
+    return {
+      access_token: this.jwtService.sign(payload, {
+        secret: TOKENS.ACCESS_TOKEN_SECRET,
+        expiresIn: TOKENS.ACCESS_EXPIRES_IN,
+      }),
+    };
+  }
   signup() {}
 
   forgetPassword() {}

@@ -1,7 +1,8 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SignInDto } from './dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { LocalAuthGuard } from './guards/local.guard';
 
 
 @ApiTags('Auth')
@@ -10,6 +11,7 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('signin')
+  @UseGuards(LocalAuthGuard)
   @ApiOperation({ summary: 'Auth login' })
   @ApiResponse({
     status: 201,
@@ -17,7 +19,7 @@ export class AuthController {
   })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
   signin(@Body() signInDto: SignInDto) {
-    return this.authService.signin(signInDto);
+    return this.authService.login(signInDto);
   }
 
   @Post('signup')
