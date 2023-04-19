@@ -1,9 +1,16 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  BadRequestException,
+  HttpException,
+  HttpStatus,
+} from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { SignInDto } from './dto';
 import { JwtService } from '@nestjs/jwt';
 import { Tokens } from 'src/types/token.type';
 import { TOKENS } from 'src/config';
+import { MailerService } from '@nestjs-modules/mailer';
 import { UserService } from 'src/user/user.service';
 // import { argon2d } from 'argon2';
 import * as argon from 'argon2';
@@ -13,6 +20,7 @@ export class AuthService {
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
+    private mailerService: MailerService,
     private userService: UserService,
   ) {}
 
@@ -56,5 +64,80 @@ export class AuthService {
   }
   signup() {}
 
-  forgetPassword() {}
+  async forgetPassword(email: string): Promise<Boolean> {
+    const user = this.prisma.user.findFirst({ where: { email } });
+
+    if (!user) throw new BadRequestException('Invalid Email');
+
+    // Insert Email, Password Reset Token & Password Reset Token Expiration Date
+    // in the Reset Password Database Model
+    const newResetPassword = await this.prisma.resetPassword.upsert({
+      where: {
+        email,
+      },
+      create: {
+        email,
+        pass_reset_token: Math.floor(Math.random() * 9000000000) + 1000000000,
+        pass_reset_token_expires: Date.now() + 10 * 60 * 1000,
+      },
+      update: {
+        pass_reset_token: Math.floor(Math.random() * 9000000000) + 1000000000,
+        pass_reset_token_expires: Date.now() + 10 * 60 * 1000,
+      },
+    });
+
+    // Sending Email with Reset Link
+    const link = `http://127.0.0.1:3000/auth/reset-password/${newResetPassword.pass_reset_token}`;
+
+    await this.mailerService.sendMail({
+      to: email,
+      from: 'hellokrish010@gmail.com',
+      subject: 'Reset Password Link',
+      text: 'Click On The Button Below To Reset Password',
+      html: `<a href='${link}'>Reset Link</a>`,
+    });
+
+    return true;
+  }
+
+  async resetPassword(
+    reset_token: bigint,
+    password: string,
+    confirmPassword: string,
+  ) {
+    // Checking If Valid Token Exists & If the Token Has Not Expired
+    const user = await this.prisma.resetPassword.findFirst({
+      where: {
+        pass_reset_token: reset_token,
+        pass_reset_token_expires: { gt: Date.now() },
+      },
+    });
+
+    if (!user) throw new HttpException('Reset Token Has Expired', 498);
+
+    // If User Exists Then Reset Password
+    const userWithNewPass = await this.prisma.user.update({
+      where: {
+        email: user.email,
+      },
+      data: {
+        password,
+      },
+    });
+
+    // Removing the Field from "Reset Password Database"
+    await this.prisma.resetPassword.delete({
+      where: {
+        email: user.email,
+      },
+    });
+
+    // Logging In User & Sending Access Token And Refresh Token
+    const tokens = await this.generateTokens(userWithNewPass.email);
+
+    return {
+      message: 'Password Reset Successfully !!!',
+      tokens,
+    };
+  }
 }
