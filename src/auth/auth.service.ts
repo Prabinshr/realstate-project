@@ -11,6 +11,9 @@ import { JwtService } from '@nestjs/jwt';
 import { Tokens } from 'src/types/token.type';
 import { TOKENS } from 'src/config';
 import { MailerService } from '@nestjs-modules/mailer';
+import { UserService } from 'src/user/user.service';
+// import { argon2d } from 'argon2';
+import * as argon from 'argon2';
 
 @Injectable()
 export class AuthService {
@@ -18,6 +21,7 @@ export class AuthService {
     private prisma: PrismaService,
     private jwtService: JwtService,
     private mailerService: MailerService,
+    private userService: UserService,
   ) {}
 
   // Generates Access & Refresh Token
@@ -37,13 +41,27 @@ export class AuthService {
       refresh_token: refreshToken,
     };
   }
-
-  signin(signInDto: SignInDto) {
-    const tokens = this.generateTokens(signInDto);
-
-    if (!tokens) throw new InternalServerErrorException('Couldnt');
+  //prashant
+  async validateUser(email: string, password: string) {
+    const user = await this.userService.findOneByEmail(email);
+    const hashPassword = await argon.verify(user.password, password);
+    if (!user || !hashPassword) return false;
+    return user;
   }
 
+  async login(signInDto: SignInDto): Promise<any> {
+    const user = await this.validateUser(signInDto.email, signInDto.password);
+    if (!user) {
+      return null;
+    }
+    const payload = { email: user.email, sub: user.id };
+    return {
+      access_token: this.jwtService.sign(payload, {
+        secret: TOKENS.ACCESS_TOKEN_SECRET,
+        expiresIn: TOKENS.ACCESS_EXPIRES_IN,
+      }),
+    };
+  }
   signup() {}
 
   async forgetPassword(email: string): Promise<Boolean> {
