@@ -32,6 +32,10 @@ export class UserService {
     return newUser;
   }
 
+  findOneByEmail(email: string) {
+    return this.prisma.user.findUnique({ where: { email: email } });
+  }
+  
   findAll() {
     return this.prisma.user.findMany();
   }
