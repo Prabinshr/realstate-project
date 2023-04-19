@@ -10,6 +10,9 @@ import { AuthService } from './auth.service';
 import { SignInDto } from './dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { LocalAuthGuard } from './guards/local.guard';
+import { UpdatePasswordDto } from './dto/';
+import { Me } from 'src/decorators';
+import { CreateUserDto } from 'src/user/dto/create-user.dto';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -53,5 +56,14 @@ export class AuthController {
       body.password,
       body.confirmPassword,
     );
+  }
+
+  @Post('update-password')
+  @UseGuards(LocalAuthGuard)
+  async updatePassword(
+    @Me() me: Partial<CreateUserDto>,
+    @Body() updatePassword: UpdatePasswordDto,
+  ) {
+    return await this.authService.updatePassword(me, updatePassword);
   }
 }

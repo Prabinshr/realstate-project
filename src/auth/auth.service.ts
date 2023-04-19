@@ -6,7 +6,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { SignInDto } from './dto';
+import { SignInDto, UpdatePasswordDto } from './dto';
 import { JwtService } from '@nestjs/jwt';
 import { Tokens } from 'src/types/token.type';
 import { TOKENS } from 'src/config';
@@ -14,6 +14,7 @@ import { MailerService } from '@nestjs-modules/mailer';
 import { UserService } from 'src/user/user.service';
 // import { argon2d } from 'argon2';
 import * as argon from 'argon2';
+import { CreateUserDto } from 'src/user/dto/create-user.dto';
 
 @Injectable()
 export class AuthService {
@@ -104,7 +105,7 @@ export class AuthService {
     reset_token: bigint,
     password: string,
     confirmPassword: string,
-  ) {
+  ): Promise<{ message: string; tokens: Tokens }> {
     // Checking If Valid Token Exists & If the Token Has Not Expired
     const user = await this.prisma.resetPassword.findFirst({
       where: {
@@ -137,6 +138,36 @@ export class AuthService {
 
     return {
       message: 'Password Reset Successfully !!!',
+      tokens,
+    };
+  }
+
+  async updatePassword(
+    me: Partial<CreateUserDto>,
+    updatePasswordDto: UpdatePasswordDto,
+  ): Promise<{ success: boolean; message: string; tokens: Tokens }> {
+    const { newPassword, confirmNewPassword } = updatePasswordDto;
+    const { email } = me;
+
+    const hashedPassword = await argon.hash(newPassword);
+
+    // Changing Password
+    const user = await this.prisma.user.update({
+      where: {
+        email: email,
+      },
+      data: {
+        password: hashedPassword,
+        confirmPassword: hashedPassword,
+      },
+    });
+
+    // Sending Access Token &  Refresh Token Again
+    const tokens = await this.generateTokens(user.email);
+
+    return {
+      success: true,
+      message: 'Password Updated Successfully',
       tokens,
     };
   }
