@@ -8,8 +8,8 @@ import {
 import { PrismaService } from 'src/prisma/prisma.service';
 import { SignInDto, UpdatePasswordDto } from './dto';
 import { JwtService } from '@nestjs/jwt';
-import { Tokens } from 'src/types/token.type';
-import { TOKENS } from 'src/config';
+import { Tokens } from 'src/auth/types/token.type';
+import { TOKENS } from 'config';
 import { MailerService } from '@nestjs-modules/mailer';
 import { UserService } from 'src/user/user.service';
 // import { argon2d } from 'argon2';
@@ -55,6 +55,7 @@ export class AuthService {
     if (!user) {
       return null;
     }
+
     const payload = { email: user.email, sub: user.id };
     return {
       access_token: this.jwtService.sign(payload, {
@@ -105,7 +106,7 @@ export class AuthService {
     reset_token: bigint,
     password: string,
     confirmPassword: string,
-  ): Promise<{ message: string; tokens: Tokens }> {
+  ): Promise<Tokens> {
     // Checking If Valid Token Exists & If the Token Has Not Expired
     const user = await this.prisma.resetPassword.findFirst({
       where: {
@@ -117,12 +118,14 @@ export class AuthService {
     if (!user) throw new HttpException('Reset Token Has Expired', 498);
 
     // If User Exists Then Reset Password
+    const hashedPassword = await argon.hash(password);
+
     const userWithNewPass = await this.prisma.user.update({
       where: {
         email: user.email,
       },
       data: {
-        password,
+        password: hashedPassword,
       },
     });
 
@@ -134,27 +137,29 @@ export class AuthService {
     });
 
     // Logging In User & Sending Access Token And Refresh Token
-    const tokens = await this.generateTokens(userWithNewPass.email);
-
-    return {
-      message: 'Password Reset Successfully !!!',
-      tokens,
-    };
+    return await this.generateTokens(userWithNewPass.email);
   }
 
   async updatePassword(
     me: Partial<CreateUserDto>,
     updatePasswordDto: UpdatePasswordDto,
-  ): Promise<{ success: boolean; message: string; tokens: Tokens }> {
-    const { newPassword, confirmNewPassword } = updatePasswordDto;
+  ): Promise<Tokens> {
+    const { password, newPassword } = updatePasswordDto;
     const { email } = me;
 
-    const hashedPassword = await argon.hash(newPassword);
+    // Getting User By Email
+    const user = await this.userService.findOneByEmail(email);
+
+    // Checking If Provided Current Password Is Correct Or Not
+    if (!(await argon.verify(user.password, password)))
+      throw new HttpException('Incorrect Password', HttpStatus.UNAUTHORIZED);
 
     // Changing Password
-    const user = await this.prisma.user.update({
+    const hashedPassword = await argon.hash(newPassword);
+
+    const updatedUser = await this.prisma.user.update({
       where: {
-        email: email,
+        email,
       },
       data: {
         password: hashedPassword,
@@ -163,12 +168,10 @@ export class AuthService {
     });
 
     // Sending Access Token &  Refresh Token Again
-    const tokens = await this.generateTokens(user.email);
-
-    return {
-      success: true,
-      message: 'Password Updated Successfully',
-      tokens,
-    };
+    return await this.generateTokens(updatedUser.email);
   }
+
+  async refreshToken() {}
+
+  async logout() {}
 }

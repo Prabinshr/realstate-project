@@ -5,7 +5,7 @@ import { PrismaModule } from 'src/prisma/prisma.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { JwtModule } from '@nestjs/jwt';
-import { TOKENS } from 'src/config';
+import { TOKENS } from 'config';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { AuthService } from 'src/auth/auth.service';
 
