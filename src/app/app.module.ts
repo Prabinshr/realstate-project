@@ -4,18 +4,26 @@ import { UserModule } from 'src/user/user.module';
 import { PrismaModule } from 'src/prisma/prisma.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { JwtModule } from '@nestjs/jwt';
-import { TOKENS } from 'src/config';
 import { MailerModule } from '@nestjs-modules/mailer';
+<<<<<<< HEAD
 import { AuthService } from 'src/auth/auth.service';
 import { LandModule } from 'src/land/land.module';
+=======
+import { InquiryModule } from 'src/inquiry/inquiry.module';
+import { JwtModule } from '@nestjs/jwt';
+import { TOKENS } from 'config';
+>>>>>>> main
 
 @Module({
   imports: [
     AuthModule,
     UserModule,
     PrismaModule,
+<<<<<<< HEAD
     LandModule,
+=======
+    InquiryModule,
+>>>>>>> main
     JwtModule.register({
       secret: TOKENS.ACCESS_TOKEN_SECRET,
     }),
@@ -24,11 +32,10 @@ import { LandModule } from 'src/land/land.module';
         host: 'smtp.ethereal.email',
         port: 587,
         auth: {
-          user: 'norma.labadie63@ethereal.email',
-          pass: 'AQA1Zc7RrjuhB7RfT2',
+          user: 'helga.mayert@ethereal.email',
+          pass: 'gXPd5uW1ZTVmfK4rk2',
         },
       },
-      options: {},
     }),
   ],
   controllers: [AppController],

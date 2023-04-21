@@ -1,4 +1,4 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { HttpException, Injectable, HttpStatus } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -7,35 +7,41 @@ import * as argon from 'argon2';
 @Injectable()
 export class UserService {
   constructor(private prisma: PrismaService) {}
+
   async create(createUserDto: CreateUserDto) {
     if (createUserDto.email.includes(' ')) {
       throw new HttpException('Email cannot contain space', 400);
     }
 
-    const email = await this.prisma.user.findFirst({
+    const user = await this.prisma.user.findFirst({
       where: {
         OR: [{ email: createUserDto.email.toLowerCase() }],
       },
     });
 
-    if (email) {
-      throw new HttpException('Email already exist ', 400);
+    if (user) {
+      throw new HttpException(
+        'User With This Email Already Exists',
+        HttpStatus.CONFLICT,
+      );
     }
 
     const hashPassword = await argon.hash(createUserDto.password);
     createUserDto.password = hashPassword;
+    createUserDto.confirmPassword = hashPassword;
 
-    const { password, ...newUser } = await this.prisma.user.create({
-      data: { ...createUserDto, email: createUserDto.email.toLowerCase() },
-    });
+    const { password, confirmPassword, ...newUser } =
+      await this.prisma.user.create({
+        data: { ...createUserDto, email: createUserDto.email.toLowerCase() },
+      });
 
     return newUser;
   }
 
   findOneByEmail(email: string) {
-    return this.prisma.user.findUnique({ where: { email: email } });
+    return this.prisma.user.findUnique({ where: { email } });
   }
-  
+
   findAll() {
     return this.prisma.user.findMany();
   }
