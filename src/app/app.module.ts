@@ -4,31 +4,10 @@ import { UserModule } from 'src/user/user.module';
 import { PrismaModule } from 'src/prisma/prisma.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { JwtModule } from '@nestjs/jwt';
-import { TOKENS } from 'config';
 import { MailerModule } from '@nestjs-modules/mailer';
-import { AuthService } from 'src/auth/auth.service';
 
 @Module({
-  imports: [
-    AuthModule,
-    UserModule,
-    PrismaModule,
-    JwtModule.register({
-      secret: TOKENS.ACCESS_TOKEN_SECRET,
-    }),
-    MailerModule.forRoot({
-      transport: {
-        host: 'smtp.ethereal.email',
-        port: 587,
-        auth: {
-          user: 'norma.labadie63@ethereal.email',
-          pass: 'AQA1Zc7RrjuhB7RfT2',
-        },
-      },
-      options: {},
-    }),
-  ],
+  imports: [AuthModule, UserModule, PrismaModule],
   controllers: [AppController],
   providers: [AppService],
 })

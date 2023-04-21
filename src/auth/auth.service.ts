@@ -1,6 +1,5 @@
 import {
   Injectable,
-  InternalServerErrorException,
   BadRequestException,
   HttpException,
   HttpStatus,
@@ -12,9 +11,10 @@ import { Tokens } from 'src/auth/types/token.type';
 import { TOKENS } from 'config';
 import { MailerService } from '@nestjs-modules/mailer';
 import { UserService } from 'src/user/user.service';
-// import { argon2d } from 'argon2';
 import * as argon from 'argon2';
 import { CreateUserDto } from 'src/user/dto/create-user.dto';
+import { User } from '@prisma/client';
+import { sendResetEmail } from './email/reset-password';
 
 @Injectable()
 export class AuthService {
@@ -26,7 +26,7 @@ export class AuthService {
   ) {}
 
   // Generates Access & Refresh Token
-  async generateTokens(payload): Promise<Tokens> {
+  async generateTokens(payload: any): Promise<Tokens> {
     const accessToken = await this.jwtService.signAsync(payload, {
       secret: TOKENS.ACCESS_TOKEN_SECRET,
       expiresIn: TOKENS.ACCESS_EXPIRES_IN,
@@ -43,70 +43,102 @@ export class AuthService {
     };
   }
   //prashant
-  async validateUser(email: string, password: string) {
+  async validateUser(email: string, password: string): Promise<User> {
+    // Checking If User Exists
     const user = await this.userService.findOneByEmail(email);
+
+    // Verifying The Password
     const hashPassword = await argon.verify(user.password, password);
-    if (!user || !hashPassword) return false;
+
+    if (!user || !hashPassword)
+      throw new HttpException('Invalid Credentials', HttpStatus.CONFLICT);
+
     return user;
   }
 
-  async login(signInDto: SignInDto): Promise<any> {
+  async login(signInDto: SignInDto): Promise<Object> {
+    // Checking If User Is Valid Or Not
     const user = await this.validateUser(signInDto.email, signInDto.password);
-    if (!user) {
-      return null;
-    }
 
-    const payload = { email: user.email, sub: user.id };
+    // Generating Access & Refresh Tokens
+    const { id, email } = user;
+
+    const tokens = await this.generateTokens({ id, email });
+
+    // Return Tokens
     return {
-      access_token: this.jwtService.sign(payload, {
-        secret: TOKENS.ACCESS_TOKEN_SECRET,
-        expiresIn: TOKENS.ACCESS_EXPIRES_IN,
-      }),
+      message: 'User Logged In Successfully',
+      ...tokens,
     };
   }
-  signup() {}
 
-  async forgetPassword(email: string): Promise<Boolean> {
-    const user = this.prisma.user.findFirst({ where: { email } });
+  async signup(signUpDto: CreateUserDto): Promise<Object> {
+    // Creates A New User
+    const { id, email, ...newUser } = await this.userService.create(signUpDto);
+
+    // Generates Access & Refresh Tokens
+    const tokens = await this.generateTokens({ id, email });
+
+    // Returns The Token
+    return {
+      message: 'User Signed Up Successfully !!!',
+      ...tokens,
+    };
+  }
+
+  async forgetPassword(email: string): Promise<object> {
+    const user = this.userService.findOneByEmail(email);
 
     if (!user) throw new BadRequestException('Invalid Email');
 
     // Insert Email, Password Reset Token & Password Reset Token Expiration Date
     // in the Reset Password Database Model
+    const pass_reset_token =
+      Math.floor(Math.random() * 9000000000) + 1000000000;
+    const pass_reset_token_expires = Date.now() + 10 * 60 * 1000;
+
     const newResetPassword = await this.prisma.resetPassword.upsert({
       where: {
         email,
       },
       create: {
         email,
-        pass_reset_token: Math.floor(Math.random() * 9000000000) + 1000000000,
-        pass_reset_token_expires: Date.now() + 10 * 60 * 1000,
+        pass_reset_token,
+        pass_reset_token_expires,
       },
       update: {
-        pass_reset_token: Math.floor(Math.random() * 9000000000) + 1000000000,
-        pass_reset_token_expires: Date.now() + 10 * 60 * 1000,
+        pass_reset_token,
+        pass_reset_token_expires,
       },
     });
 
     // Sending Email with Reset Link
-    const link = `http://127.0.0.1:3000/auth/reset-password/${newResetPassword.pass_reset_token}`;
+    try {
+      await this.mailerService.sendMail({
+        to: email,
+        from: 'realstate@gmail.com',
+        subject: 'Reset Password Link',
+        text: 'Click On The Button Below To Reset Password',
+        html: `${sendResetEmail(newResetPassword.pass_reset_token)}`,
+      });
 
-    await this.mailerService.sendMail({
-      to: email,
-      from: 'hellokrish010@gmail.com',
-      subject: 'Reset Password Link',
-      text: 'Click On The Button Below To Reset Password',
-      html: `<a href='${link}'>Reset Link</a>`,
-    });
-
-    return true;
+      return {
+        success: true,
+        message: 'Reset Password Link Has Been Sent To Your Email',
+      };
+    } catch (e) {
+      return {
+        success: false,
+        message: 'Something Went Wrong Sending Email',
+      };
+    }
   }
 
   async resetPassword(
     reset_token: bigint,
     password: string,
     confirmPassword: string,
-  ): Promise<Tokens> {
+  ): Promise<Object> {
     // Checking If Valid Token Exists & If the Token Has Not Expired
     const user = await this.prisma.resetPassword.findFirst({
       where: {
@@ -137,29 +169,33 @@ export class AuthService {
     });
 
     // Logging In User & Sending Access Token And Refresh Token
-    return await this.generateTokens(userWithNewPass.email);
+    const { id, email } = userWithNewPass;
+
+    const tokens = await this.generateTokens({ id, email });
+
+    return {
+      message: 'Password Reset Successfully !!!',
+      ...tokens,
+    };
   }
 
   async updatePassword(
-    me: Partial<CreateUserDto>,
+    me: Object,
     updatePasswordDto: UpdatePasswordDto,
-  ): Promise<Tokens> {
-    const { password, newPassword } = updatePasswordDto;
-    const { email } = me;
-
+  ): Promise<Object> {
     // Getting User By Email
-    const user = await this.userService.findOneByEmail(email);
+    const user = await this.userService.findOneByEmail(me['email']);
 
     // Checking If Provided Current Password Is Correct Or Not
-    if (!(await argon.verify(user.password, password)))
+    if (!(await argon.verify(user.password, updatePasswordDto.password)))
       throw new HttpException('Incorrect Password', HttpStatus.UNAUTHORIZED);
 
     // Changing Password
-    const hashedPassword = await argon.hash(newPassword);
+    const hashedPassword = await argon.hash(updatePasswordDto.newPassword);
 
-    const updatedUser = await this.prisma.user.update({
+    const { id, email, ...updatedUser } = await this.prisma.user.update({
       where: {
-        email,
+        email: user.email,
       },
       data: {
         password: hashedPassword,
@@ -168,10 +204,30 @@ export class AuthService {
     });
 
     // Sending Access Token &  Refresh Token Again
-    return await this.generateTokens(updatedUser.email);
+    const tokens = await this.generateTokens({ id, email });
+
+    return {
+      message: 'Password Updated Successfully !!!',
+      ...tokens,
+    };
   }
 
-  async refreshToken() {}
+  async refreshToken(me: Object) {
+    try {
+      // Generating & Sending Access & Refresh Tokens
+      const id = me['id'];
+      const email = me['email'];
 
-  async logout() {}
+      const tokens = await this.generateTokens({ id, email });
+
+      return {
+        message: 'New Access & Refresh Tokens',
+        ...tokens,
+      };
+    } catch (e) {
+      return {
+        message: 'Something Went Wrong Generating New Access & Refresh Tokens',
+      };
+    }
+  }
 }

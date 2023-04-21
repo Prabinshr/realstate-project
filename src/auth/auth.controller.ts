@@ -1,11 +1,11 @@
 import {
   Controller,
-  Get,
   Post,
   Body,
   Param,
   ParseIntPipe,
   UseGuards,
+  Req,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SignInDto } from './dto';
@@ -14,7 +14,8 @@ import { LocalAuthGuard } from './guards/local.guard';
 import { UpdatePasswordDto } from './dto/';
 import { Me } from 'src/decorators';
 import { CreateUserDto } from 'src/user/dto/create-user.dto';
-import { Tokens } from './types/token.type';
+import { AtAuthGuard, RtAuthGuard } from './guards';
+import { Request } from 'express';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -29,18 +30,20 @@ export class AuthController {
     description: 'The user has been successfully signed in.',
   })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
-  signin(@Body() signInDto: SignInDto) {
-    return this.authService.login(signInDto);
+  async signin(@Body() signInDto: SignInDto): Promise<Object> {
+    return await this.authService.login(signInDto);
   }
 
   @Post('signup')
-  @ApiOperation({ summary: 'Auth Sign-up' })
+  @ApiOperation({ summary: 'Auth Sign Up' })
   @ApiResponse({
     status: 201,
     description: 'The user has been successfully signed up.',
   })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
-  signup() {}
+  async signup(@Body() signUpDto: CreateUserDto): Promise<Object> {
+    return await this.authService.signup(signUpDto);
+  }
 
   @Post('forget-password')
   @ApiOperation({ summary: 'Auth Forget Password' })
@@ -48,9 +51,8 @@ export class AuthController {
     status: 201,
     description: 'Password Reset Link Has Been Sent To Your Email.',
   })
-  async forgetPassword(@Body() body: { email: string }) {
-    if (await this.authService.forgetPassword(body.email))
-      return { message: 'Reset Password Link Has Been Sent To Your Email' };
+  async forgetPassword(@Body() body: { email: string }): Promise<Object> {
+    return await this.authService.forgetPassword(body.email);
   }
 
   @Post('reset-password/:reset_token')
@@ -62,41 +64,38 @@ export class AuthController {
   async resetPassword(
     @Param('reset_token', ParseIntPipe) reset_token: bigint,
     @Body() body: { password: string; confirmPassword: string },
-  ): Promise<{ message: string; tokens: Tokens }> {
-    const tokens = await this.authService.resetPassword(
-      reset_token,
-      body.password,
-      body.confirmPassword,
-    );
+  ): Promise<Object> {
+    const { password, confirmPassword } = body;
 
-    return {
-      message: 'Password Reset Successfully !!!',
-      tokens,
-    };
+    return await this.authService.resetPassword(
+      reset_token,
+      password,
+      confirmPassword,
+    );
   }
 
   @Post('update-password')
+  @UseGuards(AtAuthGuard)
   @ApiOperation({ summary: 'Auth Update Password' })
   @ApiResponse({
     status: 201,
     description: 'Password Has Been Updated Successfully.',
   })
-  @UseGuards(LocalAuthGuard)
   async updatePassword(
-    @Me() me: Partial<CreateUserDto>,
+    @Req() req: Request,
     @Body() updatePassword: UpdatePasswordDto,
-  ): Promise<{ message: string; tokens: Tokens }> {
-    const tokens = await this.authService.updatePassword(me, updatePassword);
-
-    return {
-      message: 'Password Updated Successfully',
-      tokens,
-    };
+  ): Promise<Object> {
+    return await this.authService.updatePassword(req.user, updatePassword);
   }
 
   @Post('refresh-token')
-  refreshToken() {}
-
-  @Post('logout')
-  logout() {}
+  @UseGuards(RtAuthGuard)
+  @ApiOperation({ summary: 'Get New Access & Refresh Tokens' })
+  @ApiResponse({
+    status: 201,
+    description: 'New Access & Refresh Tokens Sent Successfully',
+  })
+  async refreshToken(@Req() req: Request): Promise<Object> {
+    return await this.authService.refreshToken(req.user);
+  }
 }
