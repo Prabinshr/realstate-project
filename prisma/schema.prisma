@@ -11,19 +11,29 @@ datasource db {
 }
 
 model User {
-  id       String @id @default(cuid())
-  fullname String
-  email    String @unique
-  phone    String
-  password String
+  id              String @id @default(cuid())
+  fullname        String
+  email           String @unique
+  phone           String
+  password        String
   confirmPassword String
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt()
 }
 
+model Inquiry {
+  id         String   @id @default(cuid())
+  name       String
+  phone      String
+  email      String
+  subject    String
+  message    String
+  receivedAt DateTime @default(now())
+}
+
 model ResetPassword {
-  email   String   @unique
+  email String @unique
 
   pass_reset_token         BigInt
   pass_reset_token_expires BigInt
