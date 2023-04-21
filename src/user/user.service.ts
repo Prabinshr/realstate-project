@@ -43,11 +43,20 @@ export class UserService {
   }
 
   findAll() {
-    return this.prisma.user.findMany();
+    return this.prisma.user.findMany({
+      include: {
+        houses: true,
+      },
+    });
   }
 
   findOne(id: string) {
-    return this.prisma.user.findUnique({ where: { id } });
+    return this.prisma.user.findUnique({
+      where: { id },
+      include: {
+        houses: true,
+      },
+    });
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {
