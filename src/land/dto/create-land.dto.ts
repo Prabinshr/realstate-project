@@ -24,7 +24,7 @@ export class CreateLandDto {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  propertyType: PropertyCategory;
+  propertyCategory: PropertyCategory;
 
   @ApiProperty()
   @IsString()

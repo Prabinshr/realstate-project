@@ -8,12 +8,14 @@ import { JwtModule } from '@nestjs/jwt';
 import { TOKENS } from 'src/config';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { AuthService } from 'src/auth/auth.service';
+import { LandModule } from 'src/land/land.module';
 
 @Module({
   imports: [
     AuthModule,
     UserModule,
     PrismaModule,
+    LandModule,
     JwtModule.register({
       secret: TOKENS.ACCESS_TOKEN_SECRET,
     }),

@@ -2,7 +2,9 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { LandService } from './land.service';
 import { CreateLandDto } from './dto/create-land.dto';
 import { UpdateLandDto } from './dto/update-land.dto';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags("Land")
 @Controller('land')
 export class LandController {
   constructor(private readonly landService: LandService) {}
