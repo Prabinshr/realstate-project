@@ -16,14 +16,96 @@ model User {
   email    String @unique
   phone    String
   password String
+  land     Land[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt()
 }
 
 model ResetPassword {
-  email   String   @unique
+  email String @unique
 
   pass_reset_token         BigInt
   pass_reset_token_expires BigInt
+}
+
+enum Purpose {
+  RENT
+  SALE
+}
+
+enum PropertyCategory {
+  COMMERCIAL
+  SEMICOMMERCIAL
+  RESIDENTAL
+}
+
+enum PropertyFace {
+  EAST
+  WEST
+  NORTH
+  SOUTH
+}
+
+enum PriceLabel {
+  PERMONTH
+  PERYEAR
+  PERANNA
+  PERKATTHA
+  PERROPHANI
+  PERHAAT
+  PERBIGHA
+  TOTALPRICE
+}
+
+enum RoadType {
+  BLACKTOPPED
+  CONCRETE
+  GRAVEL
+  OFFROAD
+  NOROAD
+  ALLEY
+  PAVED
+}
+
+enum AreaType {
+  HAAT
+  ROPANI
+  ANNA
+  KATTHA
+  BIGGA
+  SQUAREFEET
+}
+
+enum Negotiable {
+  YES
+  NO
+}
+
+model Land {
+  id                  String           @id @default(cuid())
+  propertyId          String?
+  purpose             Purpose
+  propertyType        PropertyCategory
+  propertyFace        PropertyFace
+  address             String
+  landmark            String?
+  roadType            RoadType?
+  roadAccess          String?
+  areaType            AreaType
+  area                String
+  price               Int
+  priceLabel          PriceLabel
+  negotiable          Negotiable
+  propertyTitle       String
+  propertyDescription String?
+  ownerName           String
+  contactNumber       String
+  image               String
+
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt()
+
+  User   User?   @relation(fields: [userId], references: [id])
+  userId String?
 }
