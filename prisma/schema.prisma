@@ -11,12 +11,13 @@ datasource db {
 }
 
 model User {
-  id       String @id @default(cuid())
-  fullname String
-  email    String @unique
-  phone    String
-  password String
+  id              String @id @default(cuid())
+  fullname        String
+  email           String @unique
+  phone           String
+  password        String
   confirmPassword String
+  land            Land[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt()
@@ -24,8 +25,18 @@ model User {
   houses House[]
 }
 
+model Inquiry {
+  id         String   @id @default(cuid())
+  name       String
+  phone      String
+  email      String
+  subject    String
+  message    String
+  receivedAt DateTime @default(now())
+}
+
 model ResetPassword {
-  email   String   @unique
+  email String @unique
 
   pass_reset_token         BigInt
   pass_reset_token_expires BigInt
@@ -93,6 +104,23 @@ enum AreaType {
   BIGGA
   SQUAREFEET
 }
+enum Purpose {
+  RENT
+  SALE
+}
+
+enum PropertyCategory {
+  COMMERCIAL
+  SEMICOMMERCIAL
+  RESIDENTAL
+}
+
+enum PropertyFace {
+  EAST
+  WEST
+  NORTH
+  SOUTH
+}
 
 enum PriceLabel {
   PERMONTH
@@ -110,17 +138,7 @@ enum PropertyType {
   apartment
   flat
 }
-enum Purpose {
-  RENT
-  SALE
-}
 
-enum PropertyFace {
-  EAST
-  WEST
-  NORTH
-  SOUTH
-}
 enum RoadType {
   BLACKTOPPED
   CONCRETE
@@ -130,13 +148,32 @@ enum RoadType {
   ALLEY
   PAVED
 }
-enum PropertyCategory {
-  COMMERCIAL
-  SEMICOMMERCIAL
-  RESIDENTAL
+
+
+model Land {
+  id                  String           @id @default(cuid())
+  propertyId          String?
+  purpose             Purpose
+  propertyCategory    PropertyCategory
+  propertyFace        PropertyFace
+  address             String
+  landmark            String?
+  roadType            RoadType?
+  roadAccess          String?
+  areaType            AreaType
+  area                String
+  price               Int
+  priceLabel          PriceLabel
+  negotiable          Negotiable
+  propertyTitle       String
+  propertyDescription String?
+  ownerName           String
+  contactNumber       String
+  image               String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt()
+
+  User   User?   @relation(fields: [userId], references: [id])
+  userId String?
 }
-
-
-
-
-
