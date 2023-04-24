@@ -11,6 +11,7 @@ import { LandModule } from 'src/land/land.module';
 import { InquiryModule } from 'src/inquiry/inquiry.module';
 import { JwtModule } from '@nestjs/jwt';
 import { TOKENS } from 'config';
+import { AtStrategy } from 'src/auth/strategy';
 
 @Module({
   imports: [
@@ -35,6 +36,6 @@ import { TOKENS } from 'config';
     }),
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService,AuthService, AtStrategy],
 })
 export class AppModule {}

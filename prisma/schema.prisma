@@ -13,6 +13,7 @@ datasource db {
 model User {
   id              String @id @default(cuid())
   fullname        String
+  role            Role @default(USER)
   email           String @unique
   phone           String
   password        String
@@ -23,6 +24,11 @@ model User {
   updatedAt DateTime @updatedAt()
 
   houses House[]
+}
+
+enum Role {
+  USER
+  ADMIN
 }
 
 model Inquiry {
@@ -46,6 +52,7 @@ model ResetPassword {
 model House {
 id                  String           @id @default(cuid())
 
+status Status
 propertyTitle String
 image String
 price Int
@@ -89,12 +96,16 @@ User User? @relation(fields: [userId], references: [id])
 userId String?
 
 }
+enum Status {
+  VERIFIED
+  UNVERIFIED
+  PENDING
+}
 
 enum Negotiable {
   YES
   NO
 }
-
 
 enum AreaType {
   HAAT
@@ -104,6 +115,7 @@ enum AreaType {
   BIGGA
   SQUAREFEET
 }
+
 enum Purpose {
   RENT
   SALE
@@ -148,7 +160,6 @@ enum RoadType {
   ALLEY
   PAVED
 }
-
 
 model Land {
   id                  String           @id @default(cuid())
