@@ -6,7 +6,7 @@ export class CreateUserDto {
   @IsNotEmpty()
   @IsString()
   fullname: string;
-  
+
   @ApiProperty()
   @IsNotEmpty()
   @IsString()
@@ -16,6 +16,11 @@ export class CreateUserDto {
   @IsNotEmpty()
   @IsString()
   phone: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsString()
+  profileImage: string;
 
   @ApiProperty()
   @IsNotEmpty()

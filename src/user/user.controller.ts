@@ -6,11 +6,14 @@ import {
   Patch,
   Param,
   Delete,
+  Res,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Response } from 'express';
+import { join } from 'path';
 
 @ApiTags('user')
 @Controller('user')
@@ -58,5 +61,16 @@ export class UserController {
   @ApiResponse({ status: 403, description: 'Forbidden.' })
   remove(@Param('id') id: string) {
     return this.userService.remove(id);
+  }
+
+  // Getting Profile Image
+  @Get('profile-image/:imageName')
+  @ApiOperation({ summary: 'Get Profile Image of The User' })
+  @ApiResponse({ status: 201, description: 'Get Profile Image Of The User' })
+  @ApiResponse({ status: 403, description: 'Forbidden.' })
+  getProfileImage(@Param('imageName') imageName: string, @Res() res: Response) {
+    return res.sendFile(
+      join(process.cwd(), 'uploads/profile-pictures/' + imageName),
+    );
   }
 }
