@@ -5,6 +5,7 @@ import { PrismaModule } from 'src/prisma/prisma.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { MailerModule } from '@nestjs-modules/mailer';
+import { HouseModule } from 'src/house/house.module';
 import { AuthService } from 'src/auth/auth.service';
 import { LandModule } from 'src/land/land.module';
 import { InquiryModule } from 'src/inquiry/inquiry.module';
@@ -16,6 +17,7 @@ import { TOKENS } from 'config';
     AuthModule,
     UserModule,
     PrismaModule,
+    HouseModule,
     LandModule,
     InquiryModule,
     JwtModule.register({

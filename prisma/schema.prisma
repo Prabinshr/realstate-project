@@ -21,6 +21,8 @@ model User {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt()
+
+  houses House[]
 }
 
 model Inquiry {
@@ -40,6 +42,68 @@ model ResetPassword {
   pass_reset_token_expires BigInt
 }
 
+
+model House {
+id                  String           @id @default(cuid())
+
+propertyTitle String
+image String
+price Int
+priceLabel PriceLabel
+address String
+negotiable Negotiable
+
+livingRoom Int?
+kitchen Int?
+bedroom Int?
+toilet Int?
+bathroom Int?
+roadAccess Int?
+builtYear Int?
+storey Int?
+floor Int?
+garage Int?
+
+propertyId String?
+category  PropertyCategory
+purpose Purpose
+areaType AreaType
+area String
+roadType RoadType?
+propertyType PropertyType
+propertyFace PropertyFace
+PropertyFeature String[]
+
+condition String
+landmark String?
+
+ownerName String
+contactNumber String
+propertyDesc String?
+
+createdAt           DateTime         @default(now())
+updatedAt           DateTime         @updatedAt()
+
+
+User User? @relation(fields: [userId], references: [id])
+userId String?
+
+}
+
+enum Negotiable {
+  YES
+  NO
+}
+
+
+enum AreaType {
+  HAAT
+  ROPANI
+  ANNA
+  KATTHA
+  BIGGA
+  SQUAREFEET
+}
 enum Purpose {
   RENT
   SALE
@@ -69,6 +133,12 @@ enum PriceLabel {
   TOTALPRICE
 }
 
+enum PropertyType {
+  room
+  apartment
+  flat
+}
+
 enum RoadType {
   BLACKTOPPED
   CONCRETE
@@ -79,19 +149,6 @@ enum RoadType {
   PAVED
 }
 
-enum AreaType {
-  HAAT
-  ROPANI
-  ANNA
-  KATTHA
-  BIGGA
-  SQUAREFEET
-}
-
-enum Negotiable {
-  YES
-  NO
-}
 
 enum Status {
   VERIFIED
