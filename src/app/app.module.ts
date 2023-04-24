@@ -5,25 +5,19 @@ import { PrismaModule } from 'src/prisma/prisma.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { MailerModule } from '@nestjs-modules/mailer';
-<<<<<<< HEAD
 import { AuthService } from 'src/auth/auth.service';
 import { LandModule } from 'src/land/land.module';
-=======
 import { InquiryModule } from 'src/inquiry/inquiry.module';
 import { JwtModule } from '@nestjs/jwt';
 import { TOKENS } from 'config';
->>>>>>> main
 
 @Module({
   imports: [
     AuthModule,
     UserModule,
     PrismaModule,
-<<<<<<< HEAD
     LandModule,
-=======
     InquiryModule,
->>>>>>> main
     JwtModule.register({
       secret: TOKENS.ACCESS_TOKEN_SECRET,
     }),

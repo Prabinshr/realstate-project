@@ -11,6 +11,7 @@ async function main() {
         email: faker.internet.email(),
         phone: faker.phone.number(),
         password: faker.internet.password(),
+        confirmPassword:faker.internet.password()
       },
     });
   }

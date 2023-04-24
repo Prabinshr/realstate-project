@@ -93,6 +93,12 @@ enum Negotiable {
   NO
 }
 
+enum Status {
+  VERIFIED
+  UNVERIFIED
+  PENDING
+}
+
 model Land {
   id                  String           @id @default(cuid())
   propertyId          String?
@@ -113,6 +119,7 @@ model Land {
   ownerName           String
   contactNumber       String
   image               String
+  status              Status
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt()
