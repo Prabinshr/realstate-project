@@ -6,16 +6,20 @@ import {
   ParseIntPipe,
   UseGuards,
   Req,
+  UseInterceptors,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SignInDto } from './dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { LocalAuthGuard } from './guards/local.guard';
 import { UpdatePasswordDto } from './dto/';
-import { Me } from 'src/decorators';
+import { UploadedFile } from '@nestjs/common/decorators';
 import { CreateUserDto } from 'src/user/dto/create-user.dto';
 import { AtAuthGuard, RtAuthGuard } from './guards';
 import { Request } from 'express';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -41,7 +45,25 @@ export class AuthController {
     description: 'The user has been successfully signed up.',
   })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
-  async signup(@Body() signUpDto: CreateUserDto): Promise<Object> {
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: './uploads/profile-pictures',
+        filename: (req, file, cb) => {
+          const filename = `${file.originalname}-${Date.now()}${extname(
+            file.originalname,
+          )}`;
+          cb(null, filename);
+        },
+      }),
+    }),
+  )
+  async signup(
+    @UploadedFile() file: Express.Multer.File,
+    @Body() signUpDto: CreateUserDto,
+  ): Promise<Object> {
+    console.log(file);
+
     return await this.authService.signup(signUpDto);
   }
 
