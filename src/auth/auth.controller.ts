@@ -45,26 +45,43 @@ export class AuthController {
     description: 'The user has been successfully signed up.',
   })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
+  async signup(@Body() signUpDto: CreateUserDto): Promise<Object> {
+    return await this.authService.signup(signUpDto);
+  }
+
+  @Post('upload-profile')
+  @ApiOperation({ summary: 'Profile Picture Upload' })
+  @ApiResponse({
+    status: 201,
+    description: 'Profile Picture Has Been Successfully Uploaded.',
+  })
+  @ApiResponse({ status: 403, description: 'Forbidden.' })
+  @UseGuards(AtAuthGuard)
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
         destination: './uploads/profile-pictures',
         filename: (req, file, cb) => {
-          const filename = `${file.originalname}-${Date.now()}${extname(
-            file.originalname,
-          )}`;
+          // console.log(req.user);
+          const id = req.user['id'];
+
+          const filename = `${
+            file.originalname.split('.')[0]
+          }-${id}-${Date.now()}${extname(file.originalname)}`;
+
           cb(null, filename);
         },
       }),
     }),
   )
-  async signup(
+  async uploadProfile(
     @UploadedFile() file: Express.Multer.File,
-    @Body() signUpDto: CreateUserDto,
   ): Promise<Object> {
     console.log(file);
 
-    return await this.authService.signup(signUpDto);
+    return {
+      message: 'Profile Picture Uploaded !!!',
+    };
   }
 
   @Post('forget-password')
