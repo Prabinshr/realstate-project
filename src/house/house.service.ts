@@ -2,7 +2,7 @@ import { HttpException, Injectable } from '@nestjs/common';
 import { CreateHouseDto } from './dto/create-house.dto';
 import { UpdateHouseDto } from './dto/update-house.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { House, Role, Status, User } from '@prisma/client';
+import { House, Purpose, Role, Status, User } from '@prisma/client';
 
 @Injectable()
 export class HouseService {
@@ -31,6 +31,18 @@ export class HouseService {
   getVerifiedHouses() {
     return this.prismaService.house.findMany({
       where: { status: 'VERIFIED' },
+    });
+  }
+
+  getMyHouses(contactNumber: string) {
+    return this.prismaService.house.findMany({
+      where: { contactNumber: contactNumber },
+    });
+  }
+
+  getHouseByPurpose(purpose: Purpose) {
+    return this.prismaService.house.findMany({
+      where: { purpose : purpose },
     });
   }
 
