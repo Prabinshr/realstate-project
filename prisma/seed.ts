@@ -72,6 +72,7 @@ async function main() {
         ownerName: faker.name.fullName(),
         contactNumber: faker.phone.number(),
         image: faker.image.image(),
+        status:"PENDING"
       },
     });
   }
