@@ -14,6 +14,15 @@ export class LandService {
       throw new HttpException(err, 500);
     }
   }
+  async uploadLandImage(id:string,landImage:Express.Multer.File){
+    try{
+      console.log(landImage)
+      // const uploadImage = await this.prisma.land.update({where:{id},data:{image:`/land/image/${String{landImage}}`}})
+    }catch(err){
+      throw new HttpException(err, 500);
+
+    }
+  }
 
   findAll() {
     try {

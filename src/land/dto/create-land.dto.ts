@@ -7,6 +7,7 @@ import {
   PropertyFace,
   Purpose,
   RoadType,
+  Status,
 } from '@prisma/client';
 import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 
@@ -101,4 +102,9 @@ export class CreateLandDto {
   @IsString()
   @IsNotEmpty()
   image: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  status: Status;
 }
