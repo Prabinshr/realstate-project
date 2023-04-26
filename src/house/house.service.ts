@@ -42,7 +42,7 @@ export class HouseService {
 
   getHouseByPurpose(purpose: Purpose) {
     return this.prismaService.house.findMany({
-      where: { purpose : purpose },
+      where: { purpose: purpose },
     });
   }
 

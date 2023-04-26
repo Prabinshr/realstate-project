@@ -26,6 +26,11 @@ export class CreateUserDto {
   @ApiProperty()
   @IsNotEmpty()
   @IsString()
+  profileImage: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsString()
   password: string;
 
   @ApiProperty()

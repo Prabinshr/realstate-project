@@ -11,13 +11,14 @@ datasource db {
 }
 
 model User {
-  id              String @id @default(cuid())
+  id              String  @id @default(cuid())
   fullname        String
   role            Role @default(USER)
   email           String @unique
   phone           String
   password        String
   confirmPassword String
+  profileImage    String?
   land            Land[]
 
   createdAt DateTime @default(now())
@@ -48,45 +49,44 @@ model ResetPassword {
   pass_reset_token_expires BigInt
 }
 
-
 model House {
-id                  String           @id @default(cuid())
+  id String @id @default(cuid())
 
 status Status
-propertyTitle String
-image String
-price Int
-priceLabel PriceLabel
-address String
-negotiable Negotiable
+  propertyTitle String
+  image         String
+  price         Int
+  priceLabel    PriceLabel
+  address       String
+  negotiable    Negotiable
 
-livingRoom Int?
-kitchen Int?
-bedroom Int?
-toilet Int?
-bathroom Int?
-roadAccess Int?
-builtYear Int?
-storey Int?
-floor Int?
-garage Int?
+  livingRoom Int?
+  kitchen    Int?
+  bedroom    Int?
+  toilet     Int?
+  bathroom   Int?
+  roadAccess Int?
+  builtYear  Int?
+  storey     Int?
+  floor      Int?
+  garage     Int?
 
-propertyId String?
-category  PropertyCategory
-purpose Purpose
-areaType AreaType
-area String
-roadType RoadType?
-propertyType PropertyType
-propertyFace PropertyFace
-PropertyFeature String[]
+  propertyId      String?
+  category        PropertyCategory
+  purpose         Purpose
+  areaType        AreaType
+  area            String
+  roadType        RoadType?
+  propertyType    PropertyType
+  propertyFace    PropertyFace
+  PropertyFeature String[]
 
-condition String
-landmark String?
+  condition String
+  landmark  String?
 
-ownerName String
-contactNumber String
-propertyDesc String?
+  ownerName     String
+  contactNumber String
+  propertyDesc  String?
 
 
 createdAt           DateTime         @default(now())
