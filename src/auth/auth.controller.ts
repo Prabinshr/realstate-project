@@ -6,21 +6,32 @@ import {
   ParseIntPipe,
   UseGuards,
   Req,
+  UseInterceptors,
+  ParseFilePipeBuilder,
+  HttpStatus,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SignInDto } from './dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { LocalAuthGuard } from './guards/local.guard';
 import { UpdatePasswordDto } from './dto/';
-import { Me } from 'src/decorators';
+import { Get, Res, UploadedFile } from '@nestjs/common/decorators';
 import { CreateUserDto } from 'src/user/dto/create-user.dto';
 import { AtAuthGuard, RtAuthGuard } from './guards';
-import { Request } from 'express';
+import { Request, Response } from 'express';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { memoryStorage } from 'multer';
+import { SharpPipe } from './pipes';
+import { join } from 'path';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private prismaService: PrismaService,
+  ) {}
 
   @Post('signin')
   @UseGuards(LocalAuthGuard)
@@ -43,6 +54,39 @@ export class AuthController {
   @ApiResponse({ status: 403, description: 'Forbidden.' })
   async signup(@Body() signUpDto: CreateUserDto): Promise<Object> {
     return await this.authService.signup(signUpDto);
+  }
+
+  // PROFILE PICTURE
+  @Post('upload-profile')
+  @ApiOperation({ summary: 'Profile Picture Upload' })
+  @ApiResponse({
+    status: 201,
+    description: 'Profile Picture Has Been Successfully Uploaded.',
+  })
+  @ApiResponse({ status: 403, description: 'Forbidden.' })
+  @UseGuards(AtAuthGuard)
+  @UseInterceptors(
+    FileInterceptor('profile', {
+      storage: memoryStorage(),
+    }),
+  )
+  async uploadProfileImage(
+    @Req() req: Request,
+    @UploadedFile(
+      new ParseFilePipeBuilder()
+        .addFileTypeValidator({ fileType: /(jpg|jpeg|png|gif)$/ })
+        .addMaxSizeValidator({
+          maxSize: 5242880,
+        })
+        .build({ errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY }),
+      SharpPipe,
+    )
+    profile: Express.Multer.File,
+  ): Promise<Object> {
+    // console.log(profile); // test-1682330672399.webp
+    const id = req.user['id'];
+
+    return await this.authService.uploadProfileImage(id, profile);
   }
 
   @Post('forget-password')

@@ -86,6 +86,26 @@ export class AuthService {
     };
   }
 
+  async uploadProfileImage(
+    id: string,
+    profile: Express.Multer.File,
+  ): Promise<Object> {
+    const { password, confirmPassword, createdAt, updatedAt, ...user } =
+      await this.prisma.user.update({
+        where: {
+          id,
+        },
+        data: {
+          profileImage: `/user/profile-image/${String(profile)}`,
+        },
+      });
+
+    return {
+      message: 'Profile Picture Uploaded !!!',
+      user,
+    };
+  }
+
   async forgetPassword(email: string): Promise<object> {
     const user = this.userService.findOneByEmail(email);
 
