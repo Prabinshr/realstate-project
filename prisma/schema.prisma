@@ -13,7 +13,8 @@ datasource db {
 model User {
   id              String  @id @default(cuid())
   fullname        String
-  email           String  @unique
+  role            Role @default(USER)
+  email           String @unique
   phone           String
   password        String
   confirmPassword String
@@ -24,6 +25,11 @@ model User {
   updatedAt DateTime @updatedAt()
 
   houses House[]
+}
+
+enum Role {
+  USER
+  ADMIN
 }
 
 model Inquiry {
@@ -46,6 +52,7 @@ model ResetPassword {
 model House {
   id String @id @default(cuid())
 
+status Status
   propertyTitle String
   image         String
   price         Int
@@ -81,11 +88,20 @@ model House {
   contactNumber String
   propertyDesc  String?
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt()
 
-  User   User?   @relation(fields: [userId], references: [id])
-  userId String?
+createdAt           DateTime         @default(now())
+updatedAt           DateTime         @updatedAt()
+
+
+User User? @relation(fields: [userId], references: [id])
+userId String?
+
+}
+
+enum Status {
+  VERIFIED
+  UNVERIFIED
+  PENDING
 }
 
 enum Negotiable {
@@ -145,13 +161,6 @@ enum RoadType {
   NOROAD
   ALLEY
   PAVED
-}
-
-
-enum Status {
-  VERIFIED
-  UNVERIFIED
-  PENDING
 }
 
 model Land {

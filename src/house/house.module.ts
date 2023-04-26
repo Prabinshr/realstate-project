@@ -4,6 +4,6 @@ import { HouseController } from './house.controller';
 
 @Module({
   controllers: [HouseController],
-  providers: [HouseService]
+  providers: [HouseService],
 })
 export class HouseModule {}

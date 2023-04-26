@@ -1,11 +1,15 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Status } from '@prisma/client';
 import { faker } from '@faker-js/faker';
 // import * as faker from 'faker';
 const prisma = new PrismaClient();
 async function main() {
+  const enumValues = Object.values(Status); // get all enum values as an array
+  const randomIndex = Math.floor(Math.random() * enumValues.length); // generate a random index
+  const randomStatus = enumValues[randomIndex]; // get the enum value at the random index
   for (let i = 0; i <= 5; i++) {
     await prisma.house.create({
       data: {
+        status: randomStatus,
         propertyTitle: faker.lorem.words(),
         image: faker.image.business(),
         price: faker.datatype.number({ min: 50000, max: 1000000 }),
@@ -72,7 +76,7 @@ async function main() {
         ownerName: faker.name.fullName(),
         contactNumber: faker.phone.number(),
         image: faker.image.image(),
-        status:"PENDING"
+        status:'VERIFIED'
       },
     });
   }
