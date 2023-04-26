@@ -9,7 +9,7 @@ async function main() {
   for (let i = 0; i <= 5; i++) {
     await prisma.house.create({
       data: {
-        status: randomStatus,
+        status: "PENDING",
         propertyTitle: faker.lorem.words(),
         image: faker.image.business(),
         price: faker.datatype.number({ min: 50000, max: 1000000 }),
@@ -44,16 +44,18 @@ async function main() {
     });
   }
 
-  // for (let i = 0; i < 5; i++) {
-  //   await prisma.user.create({
-  //     data: {
-  //       fullname: faker.name.firstName(),
-  //       email: faker.internet.email(),
-  //       phone: faker.phone.number(),
-  //       password: faker.internet.password(),
-  //     },
-  //   });
-  // }
+  for (let i = 0; i < 5; i++) {
+    await prisma.user.create({
+      data: {
+        fullname: faker.name.firstName(),
+        email: faker.internet.email(),
+        phone: faker.phone.number(),
+        password: faker.internet.password(),
+        confirmPassword: faker.internet.password(),
+        role:"USER"
+      },
+    });
+  }
 
   for (let i = 0; i < 5; i++) {
     await prisma.land.create({
@@ -76,7 +78,7 @@ async function main() {
         ownerName: faker.name.fullName(),
         contactNumber: faker.phone.number(),
         image: faker.image.image(),
-        status:'VERIFIED'
+        status:'PENDING'
       },
     });
   }

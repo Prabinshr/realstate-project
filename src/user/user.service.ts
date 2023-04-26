@@ -46,6 +46,8 @@ export class UserService {
     return this.prisma.user.findMany({
       include: {
         houses: true,
+        land:true,
+        notification:true
       },
     });
   }
@@ -55,6 +57,8 @@ export class UserService {
       where: { id },
       include: {
         houses: true,
+        land:true,
+        notification:true
       },
     });
   }

@@ -1,10 +1,12 @@
-import { HttpException, HttpStatus, Module } from '@nestjs/common';
+import { HttpException, HttpStatus, Module, forwardRef } from '@nestjs/common';
 import { LandService } from './land.service';
 import { LandController } from './land.controller';
 import { MulterModule } from '@nestjs/platform-express';
+import { NotificationModule } from 'src/notification/notification.module';
 
 @Module({
   imports: [
+    NotificationModule,
     MulterModule.register({
       dest: './uploads',
       fileFilter: (req, file, callback) => {
@@ -23,5 +25,6 @@ import { MulterModule } from '@nestjs/platform-express';
   ],
   controllers: [LandController],
   providers: [LandService],
+  exports:[LandService]
 })
 export class LandModule {}

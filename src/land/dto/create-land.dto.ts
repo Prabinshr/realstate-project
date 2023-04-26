@@ -82,7 +82,6 @@ export class CreateLandDto {
   @IsNotEmpty()
   propertyTitle: string;
 
-  
   @ApiProperty()
   @IsOptional()
   @IsString()
@@ -107,4 +106,9 @@ export class CreateLandDto {
   @IsString()
   @IsNotEmpty()
   status: Status;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsString()
+  userId?: string;
 }

@@ -1,8 +1,10 @@
 import { Module } from '@nestjs/common';
 import { HouseService } from './house.service';
 import { HouseController } from './house.controller';
+import { NotificationModule } from 'src/notification/notification.module';
 
 @Module({
+  imports:[NotificationModule],
   controllers: [HouseController],
   providers: [HouseService],
 })

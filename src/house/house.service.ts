@@ -3,10 +3,11 @@ import { CreateHouseDto } from './dto/create-house.dto';
 import { UpdateHouseDto } from './dto/update-house.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { House, Purpose, Role, Status, User } from '@prisma/client';
+import { NotificationService } from 'src/notification/notification.service';
 
 @Injectable()
 export class HouseService {
-  constructor(private prismaService: PrismaService) {}
+  constructor(private prismaService: PrismaService,private notification:NotificationService) {}
   create(createHouseDto: CreateHouseDto) {
     try {
       return this.prismaService.house.create({ data: createHouseDto });
@@ -56,10 +57,25 @@ export class HouseService {
 
   update(id: string, updateHouseDto: UpdateHouseDto) {
     try {
-      return this.prismaService.house.update({
+      const updateHouse=  this.prismaService.house.update({
         data: updateHouseDto,
         where: { id: id },
       });
+      if (updateHouseDto.status === 'VERIFIED') {
+        const message = `Your ${updateHouseDto.propertyTitle} has been verified`;
+        const userId = updateHouseDto.userId;
+
+        const notification = this.notification.create(userId, message);
+        return notification;
+      }
+      if (updateHouseDto.status === 'UNVERIFIED') {
+        const message = `Your ${updateHouseDto.propertyTitle} has been unverified`;
+        const userId = updateHouseDto.userId;
+
+        const notification = this.notification.create(userId, message);
+        return notification;
+      }
+      return updateHouse
     } catch (err) {
       throw new HttpException('Cannot update house by id.', 500);
     }

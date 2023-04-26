@@ -12,6 +12,7 @@ import { InquiryModule } from 'src/inquiry/inquiry.module';
 import { JwtModule } from '@nestjs/jwt';
 import { TOKENS } from 'config';
 import { AtStrategy } from 'src/auth/strategy';
+import { NotificationModule } from 'src/notification/notification.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { AtStrategy } from 'src/auth/strategy';
     HouseModule,
     LandModule,
     InquiryModule,
+    NotificationModule,
     JwtModule.register({
       secret: TOKENS.ACCESS_TOKEN_SECRET,
     }),
