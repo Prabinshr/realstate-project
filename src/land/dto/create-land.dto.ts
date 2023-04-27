@@ -50,7 +50,7 @@ export class CreateLandDto {
   @ApiProperty()
   @IsOptional()
   @IsString()
-  roadAccess?: string;
+  roadAccess?: number;
 
   @ApiProperty()
   @IsString()

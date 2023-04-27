@@ -170,7 +170,7 @@ model Land {
   address             String
   landmark            String?
   roadType            RoadType?
-  roadAccess          String?
+  roadAccess          Int?
   areaType            AreaType
   area                String
   price               Int

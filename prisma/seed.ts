@@ -67,7 +67,7 @@ async function main() {
         address: faker.address.cityName(),
         landmark: faker.address.cityName(),
         roadType: 'BLACKTOPPED',
-        roadAccess: faker.phone.number(),
+        roadAccess: 10,
         areaType: 'HAAT',
         area: faker.address.city(),
         price: 100000,

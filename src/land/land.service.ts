@@ -3,6 +3,7 @@ import { CreateLandDto } from './dto/create-land.dto';
 import { UpdateLandDto } from './dto/update-land.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { NotificationService } from 'src/notification/notification.service';
+import { PropertyCategory, PropertyFace, RoadType } from '@prisma/client';
 
 @Injectable()
 export class LandService {
@@ -32,6 +33,84 @@ export class LandService {
       return this.prisma.land.findMany();
     } catch (err) {
       throw new HttpException(err, 500);
+    }
+  }
+  async findLand(
+    price: string,
+    propertyCategory: PropertyCategory,
+    roadType: RoadType,
+    propertyFace: PropertyFace,
+    roadAccess: string,
+  ) {
+    var gte: number;
+    var lte: number;
+
+    var gft: number;
+    var lft: number;
+
+    switch (price) {
+      case 'lt_50l':
+        gte = 0;
+        lte = 5000000;
+        break;
+      case 'gt_50l_lt_1c':
+        gte = 5000000;
+        lte = 10000000;
+        break;
+      case 'gt_1c_lt_5c':
+        gte = 10000000;
+        lte = 50000000;
+        break;
+      case 'gt_5c_lt_10c':
+        gte = 50000000;
+        lte = 100000000;
+        break;
+      case 'gt_10c':
+        gte = 100000000;
+        break;
+      default:
+        gte = 0;
+    }
+    switch (roadAccess) {
+      case 'lt_1ft_gt_10ft':
+        gft = 1;
+        lft = 10;
+        break;
+      case 'lt_11ft_gt_20ft':
+        gft = 11;
+        lft = 20;
+        break;
+      case 'lt_21ft_gt_30ft':
+        gft = 21;
+        lft = 30;
+        break;
+
+      default:
+        gft = 0;
+    }
+
+    try {
+      const land = await this.prisma.land.findMany({
+        where: {
+          price: {
+            gte,
+            lte,
+          },
+          roadAccess: {
+            gte:gft,
+            lte:lft,
+          },
+          propertyCategory,
+          roadType,
+          propertyFace,
+        },
+      });
+
+      if (land.length === 0) throw new HttpException('Cannot find lands', 404);
+
+      return land;
+    } catch (e) {
+      throw new HttpException('Cannot find lands', 404);
     }
   }
 
